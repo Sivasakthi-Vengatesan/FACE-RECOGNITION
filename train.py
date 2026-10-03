@@ -76,15 +76,13 @@ class FaceIDNet(nn.Module):
         weights = models.ResNet50_Weights.DEFAULT
         self.backbone = models.resnet50(weights=weights)
         features = self.backbone.fc.in_features
-        self.backbone.fc = nn.Identity()
-        self.head = nn.Sequential(
-            nn.BatchNorm1d(features),
-            nn.Dropout(0.35),
-            nn.Linear(features, n_classes),
+        self.backbone.fc = nn.Sequential(
+            nn.Dropout(0.30),
+            nn.Linear(features, n_classes)
         )
 
     def forward(self, x):
-        return self.head(self.backbone(x))
+        return self.backbone(x)
 
 
 def transforms_for_training():
@@ -167,33 +165,22 @@ def main():
 
     model = FaceIDNet(n_classes).to(device)
 
-    # Warm up classifier, then fine-tune the pretrained backbone gently.
-    for p in model.backbone.parameters():
-        p.requires_grad = False
-
-    criterion = nn.CrossEntropyLoss(label_smoothing=0.08)
-    optimizer = torch.optim.AdamW(model.head.parameters(), lr=args.lr, weight_decay=1e-4)
+    criterion = nn.CrossEntropyLoss(label_smoothing=0.05)
+    backbone_params = [p for name, p in model.backbone.named_parameters() if not name.startswith("fc.")]
+    head_params = list(model.backbone.fc.parameters())
+    optimizer = torch.optim.AdamW([
+        {"params": backbone_params, "lr": args.lr * 0.1},
+        {"params": head_params, "lr": args.lr},
+    ], weight_decay=1e-4)
     scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=max(1, args.epochs))
 
     output = Path(args.output)
     output.mkdir(parents=True, exist_ok=True)
     best_path = output / "best_model.pt"
     best_acc = -1.0
-    patience, bad = 5, 0
-    warmup_epochs = min(3, max(1, args.epochs // 4))
+    patience, bad = 6, 0
 
     for epoch in range(args.epochs):
-        if epoch == warmup_epochs:
-            for p in model.backbone.parameters():
-                p.requires_grad = True
-            optimizer = torch.optim.AdamW([
-                {"params": model.backbone.parameters(), "lr": args.lr / 10},
-                {"params": model.head.parameters(), "lr": args.lr},
-            ], weight_decay=1e-4)
-            scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(
-                optimizer, T_max=max(1, args.epochs - epoch)
-            )
-
         model.train()
         running_loss = 0.0
         for x, y in train_loader:

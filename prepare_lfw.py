@@ -53,8 +53,12 @@ def main():
         person_dir = out / safe_name
         person_dir.mkdir(parents=True, exist_ok=True)
 
-        # fetch_lfw_people returns float RGB images in [0, 255] after color=True.
-        image_uint8 = image.clip(0, 255).astype("uint8")
+        # fetch_lfw_people returns float RGB images in [0.0, 1.0].
+        if image.max() <= 1.0:
+            image_uint8 = (image * 255.0).clip(0, 255).astype("uint8")
+        else:
+            image_uint8 = image.clip(0, 255).astype("uint8")
+
         Image.fromarray(image_uint8, mode="RGB").save(
             person_dir / f"{saved[int(target)]+1:03d}.jpg", quality=95
         )
