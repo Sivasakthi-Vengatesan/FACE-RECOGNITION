@@ -19,8 +19,9 @@ An end-to-end deep learning prototype for face identity classification and ranki
   - [Model Performance Summary](#1-model-performance-summary)
   - [Training & Validation Loss Curve](#2-training--validation-loss-progression)
   - [Per-Class Classification Report](#3-per-class-classification-report)
-  - [Confusion Matrix Heatmap Representation](#4-confusion-matrix-summary)
-  - [Streamlit Dashboard Inference Outputs](#5-streamlit-dashboard-inference-outputs)
+  - [Confusion Matrix Heatmap](#4-confusion-matrix-heatmap)
+  - [Multi-Identity Live Inference Predictions](#5-multi-identity-live-inference-predictions)
+  - [Streamlit Dashboard Inference Outputs](#6-streamlit-dashboard-inference-outputs)
 - [Directory Structure](#-directory-structure)
 - [Installation & Quick Start](#-installation--quick-start)
   - [1. Clone Repository](#1-clone-repository)
@@ -114,6 +115,8 @@ The model was evaluated using a stratified 80/20 train-validation split across s
 
 ### 2. Training & Validation Loss Progression
 
+![Training & Validation Curves](assets/training_metrics.png)
+
 ```text
 ================================================================================
 Training FaceID Pro (ResNet-50 Transfer Learning) on LFW
@@ -167,9 +170,9 @@ Early stopping triggered at Epoch 14.
 
 ---
 
-### 4. Confusion Matrix Summary
+### 4. Confusion Matrix Heatmap
 
-The model demonstrates strong diagonal concentration across all validated identity classes, reflecting minimal cross-identity confusion:
+![Confusion Matrix Heatmap](assets/confusion_matrix.png)
 
 ```text
                  Pred: Sharon  Powell  Rumsfeld  Schroeder  Bush  Chavez  Koizumi  Blair
@@ -185,7 +188,13 @@ True: Blair           [   0       0        0         0       0       0       0  
 
 ---
 
-### 5. Streamlit Dashboard Inference Outputs
+### 5. Multi-Identity Live Inference Predictions
+
+![Live Inference Predictions](assets/sample_predictions.png)
+
+---
+
+### 6. Streamlit Dashboard Inference Outputs
 
 #### Case A: Verified High-Confidence Match
 
